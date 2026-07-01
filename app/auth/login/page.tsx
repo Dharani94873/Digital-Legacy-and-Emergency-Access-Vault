@@ -115,7 +115,7 @@ function LoginForm() {
                 <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                   Password
                 </label>
-                <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                <Link href="/auth/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
                   Forgot password?
                 </Link>
               </div>
@@ -167,7 +167,7 @@ function LoginForm() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <Link href="/auth/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Create one
             </Link>
           </p>

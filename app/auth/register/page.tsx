@@ -45,7 +45,7 @@ function RegisterForm() {
       }
 
       toast.success('Account created! Please sign in.');
-      router.push('/login');
+      router.push('/auth/login');
     } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
@@ -215,7 +215,7 @@ function RegisterForm() {
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Sign in
             </Link>
           </p>
