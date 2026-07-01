@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const ownerProfile = await Profile.findOne({ userId }).lean();
     const ownerName    = ownerProfile?.fullName ?? 'Someone';
 
-    const inviteUrl = `${APP_URL}/register?token=${invitationToken}`;
+    const inviteUrl = `${APP_URL}/auth/register?token=${invitationToken}`;
     const { subject, html } = nomineeInvitationEmail({ ownerName, nomineeEmail: email, inviteUrl });
     sendEmail({ to: email, subject, html }).catch(console.error);
 
