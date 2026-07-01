@@ -5,7 +5,7 @@ import OwnerSidebar from '@/components/shared/OwnerSidebar';
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user || (session.user as { role?: string }).role !== 'owner') {
-    redirect('/login');
+    redirect('/auth/login');
   }
   return (
     <div className="flex min-h-screen bg-slate-50">

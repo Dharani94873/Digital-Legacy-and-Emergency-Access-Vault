@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -44,8 +45,24 @@ function RegisterForm() {
         return;
       }
 
-      toast.success('Account created! Please sign in.');
-      router.push('/auth/login');
+      toast.success('Account created successfully!');
+      
+      const loginRes = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (loginRes?.error) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const sessionRes = await fetch('/api/auth/session');
+      const session = await sessionRes.json();
+      const role = session?.user?.role ?? 'owner';
+      router.push(`/${role}/dashboard`);
+      router.refresh();
     } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {

@@ -11,37 +11,48 @@ export const authConfig: NextAuthConfig = {
   session: { strategy: 'jwt' },
 
   pages: {
-    signIn: '/login',
-    error:  '/login',
+    signIn: '/auth/login',
+    error:  '/auth/login',
   },
 
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const role = (auth?.user as { role?: string } | undefined)?.role;
-      const path = nextUrl.pathname;
-
-      // Redirect authenticated users away from auth pages
-      const authPaths = ['/login', '/register', '/forgot-password'];
-      if (authPaths.some((p) => path.startsWith(p)) && isLoggedIn) {
-        return Response.redirect(new URL(`/${role}/dashboard`, nextUrl));
+      const isApiRoute = nextUrl.pathname.startsWith('/api');
+      const isPublicPath = nextUrl.pathname === '/' || nextUrl.pathname.startsWith('/docs');
+      
+      // Auth routes (login, register)
+      const authPaths = ['/auth/login', '/auth/register', '/auth/forgot-password'];
+      const isAuthRoute = authPaths.some(p => nextUrl.pathname.startsWith(p));
+      
+      if (isAuthRoute) {
+        if (isLoggedIn) {
+          const role = (auth.user as { role?: string }).role || 'owner';
+          return Response.redirect(new URL(`/${role}/dashboard`, nextUrl));
+        }
+        return true;
       }
 
+      if (isApiRoute) return true;
+      if (isPublicPath) return true;
+
       // Protect /owner/* routes
-      if (path.startsWith('/owner')) {
-        if (!isLoggedIn) return Response.redirect(new URL('/login', nextUrl));
+      const role = (auth?.user as { role?: string })?.role;
+
+      if (nextUrl.pathname.startsWith('/owner')) {
+        if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
         if (role !== 'owner') return Response.redirect(new URL('/unauthorized', nextUrl));
       }
 
       // Protect /nominee/* routes
-      if (path.startsWith('/nominee')) {
-        if (!isLoggedIn) return Response.redirect(new URL('/login', nextUrl));
+      if (nextUrl.pathname.startsWith('/nominee')) {
+        if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
         if (role !== 'nominee') return Response.redirect(new URL('/unauthorized', nextUrl));
       }
 
       // Protect /admin/* routes
-      if (path.startsWith('/admin')) {
-        if (!isLoggedIn) return Response.redirect(new URL('/login', nextUrl));
+      if (nextUrl.pathname.startsWith('/admin')) {
+        if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
         if (role !== 'admin') return Response.redirect(new URL('/unauthorized', nextUrl));
       }
 

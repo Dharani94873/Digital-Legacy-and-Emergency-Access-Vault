@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, Users, AlertTriangle, FileText, Bell, LogOut, ChevronRight, Shield } from 'lucide-react';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 const navItems = [
   { href: '/nominee/dashboard', label: 'Dashboard',    icon: LayoutDashboard },
@@ -61,7 +62,7 @@ export default function NomineeSidebar({ user }: Props) {
             <p className="text-sm font-medium text-slate-900 truncate">{user.name ?? 'Nominee'}</p>
             <p className="text-xs text-slate-500 truncate">{user.email}</p>
           </div>
-          <button onClick={async () => { setSo(true); await signOut({ callbackUrl: '/login' }); }} disabled={so}
+          <button onClick={async () => { setSo(true); toast.success('Successfully logged out'); await signOut({ callbackUrl: '/' }); }} disabled={so}
             className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded" title="Sign out">
             <LogOut className="w-4 h-4" />
           </button>

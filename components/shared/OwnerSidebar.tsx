@@ -9,6 +9,7 @@ import {
   LayoutDashboard, FileText, FolderOpen, Users, AlertTriangle,
   ClipboardList, Settings, Shield, LogOut, ChevronRight, Bell,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import Image from 'next/image';
 
 const navItems = [
@@ -84,7 +85,7 @@ export default function OwnerSidebar({ user }: Props) {
           </div>
           <button
             id="signout-btn"
-            onClick={async () => { setSigningOut(true); await signOut({ callbackUrl: '/login' }); }}
+            onClick={async () => { setSigningOut(true); toast.success('Successfully logged out'); await signOut({ callbackUrl: '/' }); }}
             disabled={signingOut}
             className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded"
             title="Sign out"

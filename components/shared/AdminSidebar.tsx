@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, Users, BarChart2, FileSearch, LogOut, ChevronRight, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
 import Image from 'next/image';
 
 const navItems = [
@@ -59,7 +60,7 @@ export default function AdminSidebar({ user }: Props) {
             <p className="text-sm font-medium text-white truncate">{user.name ?? 'Admin'}</p>
             <p className="text-xs text-slate-500 truncate">{user.email}</p>
           </div>
-          <button onClick={async () => { setSo(true); await signOut({ callbackUrl: '/login' }); }} disabled={so}
+          <button onClick={async () => { setSo(true); toast.success('Successfully logged out'); await signOut({ callbackUrl: '/' }); }} disabled={so}
             className="text-slate-500 hover:text-red-400 transition-colors p-1 rounded" title="Sign out">
             <LogOut className="w-4 h-4" />
           </button>
