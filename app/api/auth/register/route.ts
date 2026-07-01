@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[POST /api/auth/register]', error);
     return NextResponse.json<ApiResponse>(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: error instanceof Error ? `DB/Server Error: ${error.message}` : 'Internal server error' },
       { status: 500 },
     );
   }
