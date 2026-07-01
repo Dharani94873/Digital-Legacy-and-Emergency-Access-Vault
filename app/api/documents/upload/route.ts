@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
 
     // ── Validate metadata fields
     const metadata = {
-      title:       formData.get('title')       as string,
-      description: formData.get('description') as string | undefined,
-      folderId:    formData.get('folderId')    as string | undefined,
-      categoryId:  formData.get('categoryId')  as string | undefined,
-      tags:        formData.getAll('tags')     as string[],
+      title:       (formData.get('title') as string) || '',
+      description: (formData.get('description') as string) || undefined,
+      folderId:    (formData.get('folderId') as string) || undefined,
+      categoryId:  (formData.get('categoryId') as string) || undefined,
+      tags:        formData.getAll('tags') as string[],
     };
     const parsed = uploadDocumentSchema.safeParse(metadata);
     if (!parsed.success) {
