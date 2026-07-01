@@ -8,7 +8,8 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
     secure:     true,
   });
 } else {
-  // If CLOUDINARY_URL is set, the SDK uses it automatically. We just enforce HTTPS.
+  // If CLOUDINARY_URL is set, the SDK uses it automatically when config(true) is called.
+  cloudinary.config(true);
   cloudinary.config({ secure: true });
 }
 
