@@ -126,6 +126,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('[POST /api/documents/upload]', error);
-    return errorResponse('Upload failed');
+    return errorResponse(`Upload failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`);
   }
 }
