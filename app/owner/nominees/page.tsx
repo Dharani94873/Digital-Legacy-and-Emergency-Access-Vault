@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus, Mail, Clock, Shield, ShieldOff, Loader2, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Plus, Mail, Clock, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 

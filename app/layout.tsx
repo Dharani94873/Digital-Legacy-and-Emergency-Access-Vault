@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
+import { Providers } from '@/components/providers';
+import NextTopLoader from 'nextjs-toploader';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,17 +36,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
       <body className="min-h-screen bg-white antialiased">
-        {children}
-        <Toaster
-          position="top-right"
-          expand={false}
-          richColors
-          closeButton
-          toastOptions={{
-            duration: 4000,
-            className: 'font-medium text-sm',
-          }}
-        />
+        <NextTopLoader color="#4f46e5" showSpinner={false} />
+        <Providers>
+          {children}
+          <Toaster
+            position="top-right"
+            expand={false}
+            richColors
+            closeButton
+            toastOptions={{
+              duration: 4000,
+              className: 'font-medium text-sm',
+            }}
+          />
+        </Providers>
       </body>
     </html>
   );

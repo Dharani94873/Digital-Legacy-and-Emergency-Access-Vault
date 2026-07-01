@@ -87,7 +87,7 @@ export default async function HomePage() {
             <p className="text-slate-500 text-lg">Enterprise-grade security meets thoughtful emergency access design.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map(({ icon: Icon, title, desc }, i) => (
+            {features.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
                 className="bg-white rounded-2xl p-6 border border-slate-100 hover:shadow-md transition-shadow hover:border-indigo-100 group"

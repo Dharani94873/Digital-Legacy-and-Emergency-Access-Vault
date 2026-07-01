@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, FileText, AlertTriangle, Activity, ShieldCheck,
-  TrendingUp, UserCheck, UserX, Clock,
+  TrendingUp, UserCheck, Clock,
 } from 'lucide-react';
 
 interface AdminStats {
