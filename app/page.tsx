@@ -31,11 +31,11 @@ export default async function HomePage() {
             <span className="font-bold text-slate-900 text-lg">Digital Legacy Vault</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <Link href="/auth/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Sign in
             </Link>
             <Link
-              href="/register"
+              href="/auth/register"
               className="vault-gradient text-white text-sm font-semibold px-5 py-2 rounded-xl hover:opacity-90 transition-opacity shadow-sm"
             >
               Get started free
@@ -64,13 +64,13 @@ export default async function HomePage() {
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
-              href="/register"
+              href="/auth/register"
               className="vault-gradient text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg hover:shadow-indigo-200 hover:opacity-90 transition-all flex items-center gap-2 text-base"
             >
               Start for free <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/login"
+              href="/auth/login"
               className="text-slate-700 font-semibold px-8 py-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-base"
             >
               Sign in
@@ -111,7 +111,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold mb-3">Start securing your legacy today</h2>
             <p className="text-indigo-200 mb-8">Free to start. Your data is always encrypted and never shared.</p>
             <Link
-              href="/register"
+              href="/auth/register"
               className="bg-white text-indigo-700 font-bold px-8 py-3.5 rounded-xl hover:bg-indigo-50 transition-colors inline-flex items-center gap-2"
             >
               Create your vault <ArrowRight className="w-4 h-4" />
