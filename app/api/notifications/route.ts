@@ -46,10 +46,12 @@ export async function PATCH(request: NextRequest) {
   try {
     await connectToDatabase();
     const body = await request.json();
-    const { ids, markAll } = body as { ids?: string[]; markAll?: boolean };
+    const { ids, markAll, action, id } = body as { ids?: string[]; markAll?: boolean; action?: string; id?: string };
 
-    if (markAll) {
+    if (markAll || action === 'mark-all-read') {
       await Notification.updateMany({ userId, isRead: false }, { isRead: true });
+    } else if (action === 'mark-read' && id) {
+      await Notification.updateOne({ _id: id, userId }, { isRead: true });
     } else if (ids?.length) {
       await Notification.updateMany(
         { _id: { $in: ids }, userId },

@@ -37,3 +37,6 @@ contracts/cache/
 
 # Test coverage
 coverage/
+
+.vercel
+.env*
