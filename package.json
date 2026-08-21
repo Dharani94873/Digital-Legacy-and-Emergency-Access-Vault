@@ -9,8 +9,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "contract:compile": "npx hardhat compile",
-    "contract:deploy": "npx hardhat run contracts/scripts/deploy.ts --network polygonAmoy",
-    "contract:deploy:local": "npx hardhat run contracts/scripts/deploy.ts --network localhost"
+    "contract:deploy": "npx hardhat run contracts/scripts/deploy.js --network polygonAmoy",
+    "contract:deploy:local": "npx hardhat run contracts/scripts/deploy.js --network localhost"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -54,14 +54,33 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
+    "@nomicfoundation/hardhat-ethers": "^3.1.3",
+    "@nomicfoundation/hardhat-ignition": "^0.15.16",
+    "@nomicfoundation/hardhat-ignition-ethers": "^0.15.17",
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.2",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.1.3",
+    "@nomicfoundation/ignition-core": "^0.15.15",
     "@tailwindcss/postcss": "^4",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "^4.3.20",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chai": "^4.5.0",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.19",
+    "hardhat": "^2.22.1",
+    "hardhat-gas-reporter": "^1.0.10",
+    "solidity-coverage": "^0.8.17",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
     "typescript": "^5"
   }
 }

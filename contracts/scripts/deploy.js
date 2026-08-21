@@ -1,6 +1,6 @@
-import { ethers } from 'hardhat';
-import * as fs from 'fs';
-import * as path from 'path';
+const { ethers } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -29,7 +29,7 @@ async function main() {
   const outputPath = path.join(__dirname, '..', 'deployment.json');
   fs.writeFileSync(outputPath, JSON.stringify(deploymentInfo, null, 2));
   console.log('Deployment info saved to contracts/deployment.json');
-  console.log('\nAdd this to your .env.local:');
+  console.log('\nAdd this to your .env:');
   console.log(`CONTRACT_ADDRESS=${address}`);
 }
 
