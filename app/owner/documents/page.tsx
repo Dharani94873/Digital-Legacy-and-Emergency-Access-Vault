@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Upload, FileText, File, Image, Trash2, Download, Shield,
-  CheckCircle, AlertCircle, Search, Filter, Plus, Loader2,
+  CheckCircle, AlertCircle, Search, Plus, Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -99,7 +100,11 @@ function DocumentCard({
   );
 }
 
-export default function DocumentsPage() {
+function DocumentsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const folderId = searchParams.get('folderId') || undefined;
+
   const [docs,         setDocs]         = useState<DocRecord[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [uploading,    setUploading]    = useState(false);
@@ -108,20 +113,42 @@ export default function DocumentsPage() {
   const [uploadTitle,  setUploadTitle]  = useState('');
   const [uploadFile,   setUploadFile]   = useState<File | null>(null);
   const [fetched,      setFetched]      = useState(false);
+  const [folderName,   setFolderName]   = useState<string | null>(null);
 
-  // Fetch docs on mount
+  // Fetch folder details if inside folder
+  useEffect(() => {
+    if (folderId) {
+      fetch(`/api/folders?id=${folderId}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success) setFolderName(json.data.name);
+        })
+        .catch(console.error);
+    } else {
+      setFolderName(null);
+    }
+  }, [folderId]);
+
+  // Fetch docs on mount / dependency changes
   const fetchDocs = useCallback(async () => {
     if (fetched) return;
     setLoading(true);
     try {
-      const res  = await fetch(`/api/documents?limit=50`);
+      const url = `/api/documents?limit=50${folderId ? `&folderId=${folderId}` : ''}`;
+      const res  = await fetch(url);
       const json = await res.json();
       if (json.success) setDocs(json.data.items ?? []);
     } catch { toast.error('Failed to load documents'); }
     finally { setLoading(false); setFetched(true); }
-  }, [fetched]);
+  }, [fetched, folderId]);
 
-  useState(() => { fetchDocs(); });
+  useEffect(() => {
+    setFetched(false);
+  }, [folderId]);
+
+  useEffect(() => {
+    fetchDocs();
+  }, [fetched, fetchDocs]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => { if (files[0]) { setUploadFile(files[0]); setUploadTitle(files[0].name.replace(/\.[^.]+$/, '')); }},
@@ -142,6 +169,9 @@ export default function DocumentsPage() {
       const form = new FormData();
       form.append('file',  uploadFile);
       form.append('title', uploadTitle.trim());
+      if (folderId) {
+        form.append('folderId', folderId);
+      }
       const res  = await fetch('/api/documents/upload', { method: 'POST', body: form });
       const json = await res.json();
       if (!json.success) { toast.error(json.error ?? 'Upload failed'); return; }
@@ -200,10 +230,22 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl">
+      {/* Folder Back Link */}
+      {folderId && (
+        <button
+          onClick={() => router.push('/owner/folders')}
+          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-semibold transition-colors mb-2"
+        >
+          &larr; Back to Folders
+        </button>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Document Vault</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {folderName ? `Folder: ${folderName}` : 'Document Vault'}
+          </h1>
           <p className="text-slate-500 text-sm mt-1">{docs.length} documents · All encrypted with AES-256-GCM</p>
         </div>
         <button
@@ -338,5 +380,13 @@ export default function DocumentsPage() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+export default function DocumentsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4">Loading...</div>}>
+      <DocumentsPageContent />
+    </Suspense>
   );
 }

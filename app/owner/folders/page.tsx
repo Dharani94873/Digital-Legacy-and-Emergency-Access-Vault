@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Folder, Plus, X, Loader2, AlertCircle, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,6 +11,7 @@ import { FolderCard } from '@/components/folders/FolderCard';
 const COLORS = ['indigo', 'violet', 'sky', 'emerald', 'amber', 'rose'];
 
 export default function FoldersPage() {
+  const router = useRouter();
   const [folders,    setFolders]    = useState<IFolder[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -215,7 +217,7 @@ export default function FoldersPage() {
                 <FolderCard
                   folder={folder}
                   isSelected={selected === folder._id}
-                  onClick={(f) => setSelected(selected === f._id ? null : f._id)}
+                  onClick={(f) => router.push(`/owner/documents?folderId=${f._id}`)}
                   onDelete={handleDelete}
                   delay={i * 0.04}
                 />
