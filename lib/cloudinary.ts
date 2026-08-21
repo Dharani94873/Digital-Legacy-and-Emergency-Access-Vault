@@ -39,7 +39,6 @@ export async function uploadEncryptedFile(
         resource_type: 'raw',
         folder: `digital-legacy-vault/${ownerId}`,
         public_id: `enc_${Date.now()}_${filename.replace(/[^a-zA-Z0-9]/g, '_')}`,
-        overwrite: false,
         access_mode: 'authenticated', // private — signed URLs only
       },
       (error, result) => {
