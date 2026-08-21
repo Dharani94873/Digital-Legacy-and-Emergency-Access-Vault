@@ -66,7 +66,7 @@ export const createFolderSchema = z.object({
   name:           z.string().min(1, 'Folder name is required').max(100),
   description:    z.string().max(300).optional(),
   parentFolderId: z.string().optional(),
-  color:          z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color').optional(),
+  color:          z.string().refine(val => /^#[0-9A-Fa-f]{6}$/.test(val) || ['indigo', 'violet', 'sky', 'emerald', 'amber', 'rose'].includes(val), 'Invalid color').optional(),
   icon:           z.string().optional(),
 });
 
