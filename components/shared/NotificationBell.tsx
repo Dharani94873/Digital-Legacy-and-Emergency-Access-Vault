@@ -19,7 +19,7 @@ export function NotificationBell() {
     try {
       const res  = await fetch('/api/notifications');
       const json = await res.json();
-      if (json.success) setNotifications(json.data ?? []);
+      if (json.success) setNotifications(json.data?.items ?? []);
     } finally {
       setLoading(false);
     }

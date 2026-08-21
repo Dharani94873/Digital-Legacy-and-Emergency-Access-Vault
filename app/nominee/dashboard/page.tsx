@@ -76,7 +76,7 @@ export default function NomineeDashboardPage() {
     ])
       .then(([reqJson, notifJson]) => {
         if (reqJson.success)   setRequests(reqJson.data ?? []);
-        if (notifJson.success) setNotifications(notifJson.data ?? []);
+        if (notifJson.success) setNotifications(notifJson.data?.items ?? []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
