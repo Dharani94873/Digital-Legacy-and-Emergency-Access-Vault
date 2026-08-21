@@ -1,0 +1,199 @@
+{
+  "address": "0x8CD9DD2B3c54F04fFDdd9fA563261e125CB900aA",
+  "network": "polygon-amoy",
+  "chainId": 80002,
+  "deployedAt": "2026-08-21T15:19:26.407Z",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "documentId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "ownerId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "sha256Hash",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "DocumentRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "documentId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "isValid",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "DocumentVerified",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "requestId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "nomineeId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "ownerId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "EmergencyApproved",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "documentId",
+          "type": "string"
+        }
+      ],
+      "name": "getDocumentRecord",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "storedDocumentId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "storedOwnerId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "storedHash",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "storedTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "requestId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "nomineeId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "ownerId",
+          "type": "string"
+        }
+      ],
+      "name": "logEmergencyApproval",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "documentId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "ownerId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "sha256Hash",
+          "type": "string"
+        }
+      ],
+      "name": "registerDocument",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "documentId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "sha256Hash",
+          "type": "string"
+        }
+      ],
+      "name": "verifyDocument",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "isValid",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
+}
