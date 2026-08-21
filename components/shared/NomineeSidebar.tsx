@@ -30,10 +30,19 @@ export default function NomineeSidebar({ user }: Props) {
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
           <Shield className="w-5 h-5 text-white" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-900 truncate">Digital Legacy</p>
           <p className="text-xs text-sky-600 font-medium">Nominee</p>
         </div>
+      </div>
+
+      {/* Mode Switcher */}
+      <div className="px-4 py-2 border-b border-slate-50 bg-slate-50/50">
+        <Link href="/owner/dashboard">
+          <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-sky-600 hover:bg-white hover:border-sky-200 transition-all cursor-pointer">
+            Switch to Owner View
+          </div>
+        </Link>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {

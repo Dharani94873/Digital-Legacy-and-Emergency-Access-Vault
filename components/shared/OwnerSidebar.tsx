@@ -37,10 +37,19 @@ export default function OwnerSidebar({ user }: Props) {
         <div className="w-9 h-9 rounded-xl vault-gradient flex items-center justify-center flex-shrink-0">
           <Shield className="w-5 h-5 text-white" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-900 truncate">Digital Legacy</p>
-          <p className="text-xs text-indigo-600 font-medium">Vault</p>
+          <p className="text-xs text-indigo-600 font-medium">Vault Owner</p>
         </div>
+      </div>
+
+      {/* Mode Switcher */}
+      <div className="px-4 py-2 border-b border-slate-50 bg-slate-50/50">
+        <Link href="/nominee/dashboard">
+          <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer">
+            Switch to Nominee View
+          </div>
+        </Link>
       </div>
 
       {/* Navigation */}

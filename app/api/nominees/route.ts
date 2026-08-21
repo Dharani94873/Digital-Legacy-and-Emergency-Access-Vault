@@ -12,7 +12,7 @@ import Profile from '@/models/Profile';
 
 // GET /api/nominees — list all nominees for the authenticated owner
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/nominees — invite a new nominee
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 

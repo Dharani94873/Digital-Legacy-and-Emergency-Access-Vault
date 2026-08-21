@@ -11,7 +11,7 @@ import { addDays, format } from 'date-fns';
 
 // POST /api/emergency/request — Nominee submits emergency access request
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(['nominee']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 

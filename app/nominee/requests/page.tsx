@@ -25,8 +25,10 @@ const STATUS_CONFIG = {
 
 export default function NomineeRequestsPage() {
   const [requests,   setRequests]   = useState<Request[]>([]);
+  const [owners,     setOwners]     = useState<{ ownerId: string; ownerName: string; ownerEmail: string }[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [showNew,    setShowNew]    = useState(false);
+  const [ownersLoading, setOwnersLoading] = useState(false);
   const [ownerId,    setOwnerId]    = useState('');
   const [reason,     setReason]     = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +40,19 @@ export default function NomineeRequestsPage() {
       .catch(() => toast.error('Failed to load requests'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (showNew) {
+      setOwnersLoading(true);
+      fetch('/api/nominees/owners')
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success) setOwners(json.data ?? []);
+        })
+        .catch(() => toast.error('Failed to load owners list'))
+        .finally(() => setOwnersLoading(false));
+    }
+  }, [showNew]);
 
   const handleSubmit = async () => {
     if (!ownerId.trim() || reason.length < 10) { toast.error('Please fill all fields (reason min 10 chars)'); return; }
@@ -77,9 +92,29 @@ export default function NomineeRequestsPage() {
             <h2 className="text-xl font-bold text-slate-900 mb-6">Submit Emergency Request</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Owner ID</label>
-                <input type="text" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} placeholder="MongoDB ObjectId of the owner"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Owner</label>
+                {ownersLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-slate-400 py-2.5">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading owners list...
+                  </div>
+                ) : owners.length === 0 ? (
+                  <p className="text-xs text-red-500 py-2.5">
+                    You have no active owners to request access from.
+                  </p>
+                ) : (
+                  <select
+                    value={ownerId}
+                    onChange={(e) => setOwnerId(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white text-slate-900 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="">-- Choose an Owner --</option>
+                    {owners.map((o) => (
+                      <option key={o.ownerId} value={o.ownerId}>
+                        {o.ownerName} ({o.ownerEmail})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Reason for access</label>

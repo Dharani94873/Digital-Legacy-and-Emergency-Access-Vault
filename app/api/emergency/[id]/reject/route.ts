@@ -13,7 +13,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 

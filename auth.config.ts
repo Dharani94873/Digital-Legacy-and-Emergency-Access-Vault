@@ -41,13 +41,13 @@ export const authConfig: NextAuthConfig = {
 
       if (nextUrl.pathname.startsWith('/owner')) {
         if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
-        if (role !== 'owner') return Response.redirect(new URL('/unauthorized', nextUrl));
+        if (role !== 'owner' && role !== 'nominee') return Response.redirect(new URL('/unauthorized', nextUrl));
       }
 
       // Protect /nominee/* routes
       if (nextUrl.pathname.startsWith('/nominee')) {
         if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
-        if (role !== 'nominee') return Response.redirect(new URL('/unauthorized', nextUrl));
+        if (role !== 'nominee' && role !== 'owner') return Response.redirect(new URL('/unauthorized', nextUrl));
       }
 
       // Protect /admin/* routes

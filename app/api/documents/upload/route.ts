@@ -11,7 +11,7 @@ import BlockchainTransaction from '@/models/BlockchainTransaction';
 export const config = { api: { bodyParser: false } };
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 

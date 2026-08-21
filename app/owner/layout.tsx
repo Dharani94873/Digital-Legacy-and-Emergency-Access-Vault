@@ -4,7 +4,7 @@ import OwnerSidebar from '@/components/shared/OwnerSidebar';
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session?.user || (session.user as { role?: string }).role !== 'owner') {
+  if (!session?.user || !['owner', 'nominee'].includes((session.user as { role?: string }).role || '')) {
     redirect('/auth/login');
   }
   return (

@@ -24,9 +24,8 @@ export async function GET(
     if (!doc) return errorResponse('Document not found', 404);
 
     // ── Ownership / permission check
-    if (role === 'owner') {
-      if (doc.ownerId.toString() !== userId) return errorResponse('Forbidden', 403);
-    } else if (role === 'nominee') {
+    const isDocOwner = doc.ownerId.toString() === userId;
+    if (!isDocOwner) {
       // Check if nominee has approved access and document is in their allowed list
       const nominee = await Nominee.findOne({
         nomineeUserId: userId,
@@ -46,7 +45,7 @@ export async function GET(
       // Must have an approved emergency request
       const approvedRequest = await EmergencyRequest.findOne({
         ownerId: doc.ownerId,
-        nomineeId: { $in: [nominee._id.toString()] },
+        nomineeId: nominee._id.toString(),
         status: { $in: ['approved', 'auto-approved'] },
       }).lean();
 

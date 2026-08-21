@@ -20,6 +20,7 @@ function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl  = searchParams.get('callbackUrl') ?? '';
+  const token        = searchParams.get('token');
   const [showPwd, setShowPwd] = useState(false);
   const [loading,  setLoading]  = useState(false);
 
@@ -45,6 +46,26 @@ function LoginForm() {
       const res = await fetch('/api/auth/session');
       const session = await res.json();
       const role = session?.user?.role ?? 'owner';
+
+      // Automatically accept the nominee invitation if token is present
+      if (token && session?.user?.id) {
+        try {
+          const acceptRes = await fetch(`/api/nominees/accept?token=${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: session.user.id }),
+          });
+          const acceptJson = await acceptRes.json();
+          if (acceptJson.success) {
+            toast.success('Nominee invitation accepted!');
+          } else {
+            toast.error(acceptJson.error ?? 'Failed to accept nominee invitation');
+          }
+        } catch (e) {
+          console.error('[Login accept invitation failed]', e);
+        }
+      }
+
       router.push(callbackUrl || `/${role}/dashboard`);
       router.refresh();
     } catch {

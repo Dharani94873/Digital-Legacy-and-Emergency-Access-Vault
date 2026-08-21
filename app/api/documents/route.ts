@@ -5,7 +5,7 @@ import VaultDocument from '@/models/Document';
 
 // GET /api/documents — list all documents for the authenticated owner
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 

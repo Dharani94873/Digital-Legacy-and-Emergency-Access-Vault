@@ -4,6 +4,8 @@ import { requireAuth, isNextResponse, successResponse, errorResponse, logAudit }
 import { getDocumentRecordFromChain } from '@/lib/blockchain';
 import VaultDocument from '@/models/Document';
 import BlockchainTransaction from '@/models/BlockchainTransaction';
+import Nominee from '@/models/Nominee';
+import EmergencyRequest from '@/models/EmergencyRequest';
 
 // GET /api/documents/[id]/verify — check blockchain integrity
 export async function GET(
@@ -21,8 +23,30 @@ export async function GET(
     const doc = await VaultDocument.findOne({ _id: id, isDeleted: false }).lean();
     if (!doc) return errorResponse('Document not found', 404);
 
-    if (role === 'owner' && doc.ownerId.toString() !== userId) {
-      return errorResponse('Forbidden', 403);
+    const isDocOwner = doc.ownerId.toString() === userId;
+    if (!isDocOwner) {
+      const nominee = await Nominee.findOne({
+        nomineeUserId: userId,
+        ownerId: doc.ownerId,
+        status: 'active',
+      }).lean();
+
+      if (!nominee) return errorResponse('Forbidden', 403);
+
+      const hasAccess =
+        nominee.allowedDocumentIds.some((d) => d.toString() === id) ||
+        (doc.folderId &&
+          nominee.allowedFolderIds.some((f) => f.toString() === doc.folderId?.toString()));
+
+      if (!hasAccess) return errorResponse('Forbidden', 403);
+
+      const approvedRequest = await EmergencyRequest.findOne({
+        ownerId: doc.ownerId,
+        nomineeId: nominee._id.toString(),
+        status: { $in: ['approved', 'auto-approved'] },
+      }).lean();
+
+      if (!approvedRequest) return errorResponse('Forbidden', 403);
     }
 
     const record = await getDocumentRecordFromChain(id);

@@ -49,8 +49,10 @@ export async function POST(request: Request) {
     nominee.invitationToken = ''; // Invalidate token
     await nominee.save();
 
-    // Update user role to nominee if they were an owner-only user
-    await User.findByIdAndUpdate(userId, { role: 'nominee' });
+    // Update user role to nominee if they are not already an owner or admin
+    if (user.role !== 'owner' && user.role !== 'admin') {
+      await User.findByIdAndUpdate(userId, { role: 'nominee' });
+    }
 
     return NextResponse.json({
       success: true,

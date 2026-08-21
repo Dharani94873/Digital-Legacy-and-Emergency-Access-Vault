@@ -5,7 +5,7 @@ import { createFolderSchema } from '@/lib/validators';
 import Folder from '@/models/Folder';
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(['owner']);
+  const auth = await requireAuth(['owner', 'nominee']);
   if (isNextResponse(auth)) return auth;
   const { userId } = auth;
 
