@@ -65,7 +65,7 @@ export async function downloadEncryptedFile(publicId: string): Promise<Buffer> {
   // Generate a short-lived signed URL (1 minute is enough for a server-side download)
   const signedUrl = cloudinary.url(publicId, {
     resource_type: 'raw',
-    type: 'authenticated',
+    type: 'upload',
     sign_url: true,
     expires_at: Math.floor(Date.now() / 1000) + 60,
   });
