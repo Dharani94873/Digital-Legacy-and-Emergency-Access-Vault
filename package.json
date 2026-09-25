@@ -2,6 +2,34 @@
   "name": "digital-legacy-vault",
   "version": "0.1.0",
   "private": true,
+  "description": "Enterprise-grade, zero-knowledge digital legacy and emergency access vault with AES-256-GCM encryption, Polygon Amoy blockchain verification, Three.js 3D WebGL UI, and automated dead-man's switch.",
+  "homepage": "https://digilecacy.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dharani94873/Digital-Legacy-and-Emergency-Access-Vault.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dharani94873/Digital-Legacy-and-Emergency-Access-Vault/issues"
+  },
+  "keywords": [
+    "digital-legacy",
+    "emergency-access",
+    "vault",
+    "zero-knowledge",
+    "aes-256-gcm",
+    "blockchain",
+    "polygon-amoy",
+    "solidity",
+    "threejs",
+    "webgl",
+    "dead-mans-switch",
+    "nextjs",
+    "react19",
+    "typescript",
+    "tailwindcss"
+  ],
+  "author": "Dharani <dharani94873@gmail.com>",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
