@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Search, AlertCircle, Loader2, ShieldCheck, User as UserIcon, Lock, Unlock, Mail } from 'lucide-react';
+import { Users, Search, AlertCircle, Loader2, ShieldCheck, User as UserIcon, Lock, Unlock, Mail, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -83,6 +83,36 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleCleanSlate = async () => {
+    const confirmation = window.prompt(
+      'DANGER: This will permanently delete ALL accounts, profiles, documents, nominees, and vault files from the database.\n\nType "RESET" to confirm:'
+    );
+    if (confirmation !== 'RESET') {
+      if (confirmation !== null) toast.error('Reset cancelled. You must type RESET exactly.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch('/api/admin/clean-slate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: 'clean_vault_slate' }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success('Clean slate complete! All accounts and data wiped.');
+        setUsers([]);
+      } else {
+        toast.error(json.error || 'Failed to wipe accounts');
+      }
+    } catch {
+      toast.error('Failed to connect to clean slate service');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-6xl">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -91,7 +121,15 @@ export default function AdminUsersPage() {
           <p className="text-slate-500 text-sm mt-1">View and manage all registered users.</p>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+          <button
+            onClick={handleCleanSlate}
+            title="Wipe all accounts and start fresh"
+            className="px-3.5 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors flex items-center gap-1.5 shrink-0"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+            <span>Clean Slate (Wipe All Accounts)</span>
+          </button>
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input

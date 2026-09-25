@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "contract:compile": "npx hardhat compile",
     "contract:deploy": "npx hardhat run contracts/scripts/deploy.js --network polygonAmoy",
-    "contract:deploy:local": "npx hardhat run contracts/scripts/deploy.js --network localhost"
+    "contract:deploy:local": "npx hardhat run contracts/scripts/deploy.js --network localhost",
+    "db:clean": "ts-node scripts/clean-slate.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

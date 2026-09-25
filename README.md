@@ -25,9 +25,9 @@
 * **Immutable Anchoring**: Calculates a SHA-256 hash of the original document and anchors it on the **Polygon Amoy testnet** using a Solidity smart contract.
 * **On-Chain Proof**: Verify files against the smart contract registry at any time, providing cryptographic proof that the document has not been tampered with.
 
-### 👥 Dual-Role Architecture (Switcher Layout)
-* **Unified Workspace**: Users can concurrently act as **Vault Owners** (uploading folders/documents, inviting nominees) and **Nominees** for other users (requesting access, viewing documents).
-* **Mode Swapping**: Easily switch dashboards using a toggle sidebar.
+### 👥 Strict Dual-Role Architecture (Owner & Nominee Portals)
+* **Dedicated Portals**: Independent, secure access portals for **Vault Owners** (document management, folders, nominee designations) and **Nominees** (emergency clearance requests, verified document access).
+* **Strict Role Enforcement**: Middleware-level route protection prevents cross-role privilege access, ensuring complete cryptographic segregation between owners and nominees.
 
 ### 🚨 Emergency Access & Dead-Man's Switch
 * **Configurable Waiting Periods**: Owners specify waiting periods (e.g., 7, 15, 30 days) for nominees.
