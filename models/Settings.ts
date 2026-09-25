@@ -11,7 +11,6 @@ const SettingsSchema = new Schema<ISettingsDocument>(
       enum: [7, 15, 30, 60, 90, 180, 365] as WaitingPeriodDays[],
       default: 30,
     },
-    emailNotifications: { type: Boolean, default: true },
     twoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true },
