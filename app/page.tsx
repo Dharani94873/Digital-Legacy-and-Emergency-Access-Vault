@@ -16,7 +16,7 @@ export default async function HomePage() {
     { icon: Users,     title: 'Trusted Nominees',          desc: 'Grant controlled emergency access to people you trust.' },
     { icon: FileText,  title: 'Document Vault',            desc: 'Organize insurance, medical, legal, and identity documents securely.' },
     { icon: CheckCircle, title: 'Audit Trail',             desc: 'Every action logged with actor, timestamp, and IP address.' },
-    { icon: Zap,       title: 'Emergency Access Workflow', desc: 'Configurable waiting periods with auto-approval and email notifications.' },
+    { icon: Zap,       title: 'Emergency Access Workflow', desc: 'Configurable waiting periods with dead-man\'s switch auto-approval and in-app notifications.' },
   ];
 
   return (
