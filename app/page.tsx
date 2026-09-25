@@ -18,6 +18,7 @@ import {
 import Vault3DScene from '@/components/landing/Vault3DScene';
 import TiltCard from '@/components/landing/TiltCard';
 import InteractiveVaultDemo from '@/components/landing/InteractiveVaultDemo';
+import LandingScrollExperience from '@/components/landing/LandingScrollExperience';
 
 export const metadata = {
   title: 'Digital Legacy & Emergency Access Vault | 3D Cryptographic Enclave',
@@ -112,6 +113,12 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white overflow-x-hidden relative">
+      {/* 3D WebGL Fixed Camera Journey Across Entire Page */}
+      <Vault3DScene interactiveState="idle" />
+
+      {/* 3D Scroll Progress HUD & Stage Telemetry */}
+      <LandingScrollExperience />
+
       {/* Background Cyber Grid & Ambient Glows */}
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.18),rgba(255,255,255,0))] -z-20" />
       <div className="fixed inset-0 pointer-events-none opacity-20 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] -z-20" />
@@ -176,11 +183,8 @@ export default async function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section with 3D WebGL Canvas */}
+      {/* Hero Section */}
       <section id="3d-core" className="relative pt-32 pb-20 md:pt-40 md:pb-32 px-6 min-h-[85vh] flex items-center justify-center">
-        {/* Three.js Interactive 3D Canvas Background */}
-        <Vault3DScene interactiveState="idle" />
-
         {/* Foreground Content */}
         <div className="max-w-5xl mx-auto relative z-10 text-center pointer-events-auto">
           {/* Top Badge */}

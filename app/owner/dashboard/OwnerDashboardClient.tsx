@@ -32,8 +32,10 @@ const StatCard = ({
   <motion.div
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
+    whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
     transition={{ delay, duration: 0.35, ease: 'easeOut' }}
-    className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+    style={{ transformStyle: 'preserve-3d' }}
+    className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all cursor-default"
   >
     <div className="flex items-start justify-between">
       <div>
@@ -41,7 +43,7 @@ const StatCard = ({
         <p className="text-3xl font-bold text-slate-900 mt-1">{value}</p>
         {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
       </div>
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} shadow-md`}>
         <Icon className="w-6 h-6 text-white" />
       </div>
     </div>

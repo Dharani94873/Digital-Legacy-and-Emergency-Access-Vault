@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import { Providers } from '@/components/providers';
 import NextTopLoader from 'nextjs-toploader';
+import Global3DAtmosphere from '@/components/shared/Global3DAtmosphere';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,8 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
-      <body className="min-h-screen bg-white antialiased">
+      <body className="min-h-screen bg-white antialiased relative">
         <NextTopLoader color="#4f46e5" showSpinner={false} />
+        <Global3DAtmosphere />
         <Providers>
           {children}
           <Toaster

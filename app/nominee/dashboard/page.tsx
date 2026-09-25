@@ -42,8 +42,10 @@ function StatCard({ title, value, icon: Icon, color, href, delay = 0 }: {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
       transition={{ delay, duration: 0.3 }}
-      className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+      style={{ transformStyle: 'preserve-3d' }}
+      className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:border-sky-100 transition-all cursor-pointer"
     >
       <div className="flex items-start justify-between">
         <div>
