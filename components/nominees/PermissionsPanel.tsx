@@ -96,7 +96,7 @@ export function PermissionsPanel({ nominee, isOpen, onClose, onSaved }: Permissi
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
               <div>
                 <h2 className="font-semibold text-slate-900">Manage Permissions</h2>
-                <p className="text-sm text-slate-500 truncate max-w-[240px]">{nominee.nomineeEmail}</p>
+                <p className="text-sm text-slate-500 truncate max-w-[240px]">@{nominee.nomineeUsername}</p>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
                 <X className="w-5 h-5" />
