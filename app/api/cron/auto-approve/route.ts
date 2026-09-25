@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import { logAudit, createNotification } from '@/lib/utils';
-import { sendEmail, autoApprovalWarningEmail, autoApprovedEmail, APP_URL } from '@/lib/resend';
 import { logEmergencyApprovalOnChain } from '@/lib/blockchain';
 import EmergencyRequest from '@/models/EmergencyRequest';
 import Nominee from '@/models/Nominee';
 import Profile from '@/models/Profile';
 import User from '@/models/User';
 import BlockchainTransaction from '@/models/BlockchainTransaction';
-import { addDays, subDays, format, isAfter } from 'date-fns';
+import { addDays, format, isAfter } from 'date-fns';
 
 const CRON_SECRET = process.env.CRON_SECRET!;
 
@@ -24,34 +23,33 @@ export async function GET(request: NextRequest) {
     const now = new Date();
 
     // ──────────────────────────────────────────────
-    // 1. Send 7-day warning emails
+    // 1. Send 7-day warning in-app notifications
     // ──────────────────────────────────────────────
     const warningThreshold = addDays(now, 7);
     const pendingForWarning = await EmergencyRequest.find({
       status:               'pending',
-      warningEmailSentAt:   null,
+      warningNotifiedAt:    null,
       autoApprovalScheduledAt: { $lte: warningThreshold, $gt: now },
     });
 
     for (const req of pendingForWarning) {
       const nominee    = await Nominee.findById(req.nomineeId).lean();
-      const ownerUser  = await User.findById(req.ownerId).lean();
       const ownerProf  = await Profile.findOne({ userId: req.ownerId.toString() }).lean();
       const nomProf    = nominee?.nomineeUserId
         ? await Profile.findOne({ userId: nominee.nomineeUserId.toString() }).lean()
         : null;
 
-      if (ownerUser) {
-        const { subject, html } = autoApprovalWarningEmail({
-          ownerName:       ownerProf?.fullName ?? ownerUser.email,
-          nomineeName:     nomProf?.fullName ?? req.nomineeId.toString(),
-          autoApproveDate: format(req.autoApprovalScheduledAt, 'MMMM d, yyyy'),
-          requestUrl:      `${APP_URL}/owner/requests/${req._id}`,
-        });
-        await sendEmail({ to: ownerUser.email, subject, html });
-      }
+      // In-app warning for the owner
+      await createNotification({
+        userId:            req.ownerId.toString(),
+        type:              'emergency.warning',
+        title:             '⏰ Auto-Approval Warning',
+        message:           `${nomProf?.fullName ?? 'A nominee'}'s emergency request will be automatically approved on ${format(req.autoApprovalScheduledAt, 'MMMM d, yyyy')} unless you take action.`,
+        relatedEntityId:   req._id.toString(),
+        relatedEntityType: 'emergency_request',
+      });
 
-      req.warningEmailSentAt = now;
+      req.warningNotifiedAt = now;
       await req.save();
     }
 
@@ -72,28 +70,17 @@ export async function GET(request: NextRequest) {
       req.grantedDocumentIds = nominee.allowedDocumentIds as string[];
       await req.save();
 
-      const nomineeUser = nominee.nomineeUserId
-        ? await User.findById(nominee.nomineeUserId).lean()
-        : null;
-      const nomProf = nomineeUser
-        ? await Profile.findOne({ userId: nomineeUser._id.toString() }).lean()
-        : null;
       const ownerProf = await Profile.findOne({ userId: req.ownerId.toString() }).lean();
 
-      // Notify nominee
-      if (nomineeUser) {
-        const { subject, html } = autoApprovedEmail({
-          nomineeName:  nomProf?.fullName ?? nomineeUser.email,
-          ownerName:    ownerProf?.fullName ?? 'The owner',
-          dashboardUrl: `${APP_URL}/nominee/documents`,
-        });
-        sendEmail({ to: nomineeUser.email, subject, html }).catch(console.error);
+      // Notify nominee in-app
+      if (nominee.nomineeUserId) {
+        const nomProf = await Profile.findOne({ userId: nominee.nomineeUserId.toString() }).lean();
 
         await createNotification({
-          userId:            nomineeUser._id.toString(),
+          userId:            nominee.nomineeUserId,
           type:              'emergency.auto-approved',
-          title:             'Emergency Access Granted',
-          message:           'The waiting period has expired. You now have access to the authorized documents.',
+          title:             '✅ Emergency Access Granted',
+          message:           `The waiting period for your emergency access request from ${ownerProf?.fullName ?? 'the owner'} has expired. Access has been automatically granted.`,
           relatedEntityId:   req._id.toString(),
           relatedEntityType: 'emergency_request',
         });

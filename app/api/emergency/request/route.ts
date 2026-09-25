@@ -2,12 +2,11 @@ import { NextRequest } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import { requireAuth, isNextResponse, successResponse, errorResponse, logAudit, createNotification } from '@/lib/utils';
 import { emergencyRequestSchema } from '@/lib/validators';
-import { sendEmail, emergencyRequestEmail, APP_URL } from '@/lib/resend';
 import EmergencyRequest from '@/models/EmergencyRequest';
 import Nominee from '@/models/Nominee';
 import Profile from '@/models/Profile';
 import User from '@/models/User';
-import { addDays, format } from 'date-fns';
+import { addDays } from 'date-fns';
 
 // POST /api/emergency/request — Nominee submits emergency access request
 export async function POST(request: NextRequest) {
@@ -54,35 +53,23 @@ export async function POST(request: NextRequest) {
       ownerNotifiedAt:         new Date(),
     });
 
-    // Get profiles for email
-    const [nomineeProfile, ownerUser, ownerProfile] = await Promise.all([
+    // Get nominee profile for notification message
+    const [nomineeProfile, ownerUser] = await Promise.all([
       Profile.findOne({ userId }).lean(),
       User.findById(ownerId).lean(),
-      Profile.findOne({ userId: ownerId }).lean(),
     ]);
 
-    // Notify owner via email
+    // Notify owner via in-app notification
     if (ownerUser) {
-      const { subject, html } = emergencyRequestEmail({
-        ownerName:       ownerProfile?.fullName ?? ownerUser.email,
-        nomineeName:     nomineeProfile?.fullName ?? 'Your nominee',
-        nomineeEmail:    ownerUser.email,
-        reason,
-        autoApproveDate: format(autoApprovalScheduledAt, 'MMMM d, yyyy'),
-        requestUrl:      `${APP_URL}/owner/requests/${emergencyRequest._id}`,
+      await createNotification({
+        userId:              ownerId,
+        type:                'emergency.request',
+        title:               '🚨 Emergency Access Request',
+        message:             `${nomineeProfile?.fullName ?? 'A nominee'} has requested emergency access to your documents. Reason: ${reason.slice(0, 100)}`,
+        relatedEntityId:     emergencyRequest._id.toString(),
+        relatedEntityType:   'emergency_request',
       });
-      sendEmail({ to: ownerUser.email, subject, html }).catch(console.error);
     }
-
-    // In-app notification for owner
-    await createNotification({
-      userId:              ownerId,
-      type:                'emergency.request',
-      title:               'Emergency Access Request',
-      message:             `${nomineeProfile?.fullName ?? 'A nominee'} has requested emergency access to your documents.`,
-      relatedEntityId:     emergencyRequest._id.toString(),
-      relatedEntityType:   'emergency_request',
-    });
 
     await logAudit({
       actorId:      userId,

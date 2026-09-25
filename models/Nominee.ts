@@ -5,9 +5,10 @@ export interface INomineeDocument extends Omit<INominee, '_id'>, Document {}
 
 const NomineeSchema = new Schema<INomineeDocument>(
   {
-    ownerId: { type: String, ref: 'User', required: true, index: true },
-    nomineeUserId: { type: String, ref: 'User', default: null },
-    nomineeEmail: { type: String, required: true, lowercase: true, trim: true },
+    ownerId:            { type: String, ref: 'User', required: true, index: true },
+    nomineeUserId:      { type: String, ref: 'User', default: null },
+    // Username of the intended nominee (for display; they redeem by secret code)
+    nomineeUsername:    { type: String, default: '', trim: true },
     status: {
       type: String,
       enum: ['pending', 'active', 'revoked'] as NomineeStatus[],
@@ -18,16 +19,18 @@ const NomineeSchema = new Schema<INomineeDocument>(
       enum: [7, 15, 30, 60, 90, 180, 365] as WaitingPeriodDays[],
       default: 30,
     },
-    allowedFolderIds: [{ type: String, ref: 'Folder' }],
+    allowedFolderIds:   [{ type: String, ref: 'Folder' }],
     allowedDocumentIds: [{ type: String, ref: 'VaultDocument' }],
-    invitationToken: { type: String, required: true, unique: true, index: true },
-    invitedAt: { type: Date, default: Date.now },
-    acceptedAt: { type: Date, default: null },
+    // Secret code shown to the owner — nominee enters this on their dashboard
+    secretCode:   { type: String, required: true, unique: true, index: true },
+    invitedAt:    { type: Date, default: Date.now },
+    acceptedAt:   { type: Date, default: null },
   },
   { timestamps: true },
 );
 
-NomineeSchema.index({ ownerId: 1, nomineeEmail: 1 }, { unique: true });
+// Each owner can only have one record per nomineeUsername
+NomineeSchema.index({ ownerId: 1, nomineeUsername: 1 }, { unique: true, sparse: true });
 
 const Nominee: Model<INomineeDocument> =
   mongoose.models.Nominee ?? mongoose.model<INomineeDocument>('Nominee', NomineeSchema);

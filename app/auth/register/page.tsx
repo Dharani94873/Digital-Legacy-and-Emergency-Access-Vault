@@ -1,33 +1,28 @@
 'use client';
 
 import { Suspense } from 'react';
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, Mail, User, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Shield, Loader2, AtSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { registerSchema } from '@/lib/validators';
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
 function RegisterForm() {
-  const router       = useRouter();
-  const searchParams = useSearchParams();
-  const token        = searchParams.get('token');
-  const isNominee    = !!token;
+  const router        = useRouter();
   const [showPwd,     setShowPwd]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { invitationToken: token ?? undefined },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -45,10 +40,10 @@ function RegisterForm() {
         return;
       }
 
-      toast.success('Account created successfully!');
-      
+      toast.success('Account created! Signing you in…');
+
       const loginRes = await signIn('credentials', {
-        email: data.email,
+        email:    data.email,
         password: data.password,
         redirect: false,
       });
@@ -59,8 +54,8 @@ function RegisterForm() {
       }
 
       const sessionRes = await fetch('/api/auth/session');
-      const session = await sessionRes.json();
-      const role = session?.user?.role ?? 'owner';
+      const session    = await sessionRes.json();
+      const role       = session?.user?.role ?? 'owner';
       router.push(`/${role}/dashboard`);
       router.refresh();
     } catch {
@@ -100,33 +95,13 @@ function RegisterForm() {
             <Shield className="w-8 h-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-slate-900">Digital Legacy Vault</h1>
-          <p className="text-slate-500 mt-1 text-sm">
-            {isNominee ? 'Accept your nominee invitation' : 'Create your secure vault'}
-          </p>
+          <p className="text-slate-500 mt-1 text-sm">Create your secure vault account</p>
         </div>
-
-        {isNominee && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-3 bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4"
-          >
-            <AlertCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-indigo-900">Nominee Invitation</p>
-              <p className="text-xs text-indigo-700 mt-0.5">
-                You&apos;ve been invited as a trusted nominee. Register with your invited email address to accept.
-              </p>
-            </div>
-          </motion.div>
-        )}
 
         <div className="glass-card rounded-2xl p-8">
           <h2 className="text-xl font-semibold text-slate-900 mb-6">Create your account</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-            {/* Hidden invitation token */}
-            {token && <input type="hidden" {...register('invitationToken')} />}
 
             {/* Full Name */}
             <InputWrapper error={errors.fullName?.message}>
@@ -145,6 +120,26 @@ function RegisterForm() {
                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
+            </InputWrapper>
+
+            {/* Username */}
+            <InputWrapper error={errors.username?.message}>
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1.5">
+                Username
+              </label>
+              <div className="relative">
+                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  {...register('username')}
+                  placeholder="john_doe"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm placeholder-slate-400
+                             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <p className="mt-1 text-xs text-slate-400">Lowercase letters, numbers, underscores only. This is how owners will add you as a nominee.</p>
             </InputWrapper>
 
             {/* Email */}
@@ -225,14 +220,14 @@ function RegisterForm() {
               {loading ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>
               ) : (
-                isNominee ? 'Accept Invitation & Register' : 'Create Account'
+                'Create Account'
               )}
             </button>
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{' '}
-            <Link href={`/auth/login${token ? `?token=${token}` : ''}`} className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Sign in
             </Link>
           </p>

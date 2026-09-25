@@ -1,11 +1,9 @@
 import { NextRequest } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import { requireAuth, isNextResponse, successResponse, errorResponse, logAudit, createNotification } from '@/lib/utils';
-import { sendEmail, requestRejectedEmail } from '@/lib/resend';
 import EmergencyRequest from '@/models/EmergencyRequest';
 import Nominee from '@/models/Nominee';
 import Profile from '@/models/Profile';
-import User from '@/models/User';
 
 // POST /api/emergency/[id]/reject
 export async function POST(
@@ -32,24 +30,18 @@ export async function POST(
     await emergencyReq.save();
 
     const nominee = await Nominee.findById(emergencyReq.nomineeId).lean();
-    const [nomineeUser, nomineeProfile, ownerProfile] = await Promise.all([
-      nominee?.nomineeUserId ? User.findById(nominee.nomineeUserId).lean() : null,
+    const [nomineeProfile, ownerProfile] = await Promise.all([
       nominee?.nomineeUserId ? Profile.findOne({ userId: nominee.nomineeUserId }).lean() : null,
       Profile.findOne({ userId }).lean(),
     ]);
 
-    if (nomineeUser) {
-      const { subject, html } = requestRejectedEmail({
-        nomineeName: nomineeProfile?.fullName ?? nomineeUser.email,
-        ownerName:   ownerProfile?.fullName ?? 'The owner',
-      });
-      sendEmail({ to: nomineeUser.email, subject, html }).catch(console.error);
-
+    // Notify nominee in-app only
+    if (nominee?.nomineeUserId) {
       await createNotification({
-        userId:            nomineeUser._id.toString(),
+        userId:            nominee.nomineeUserId,
         type:              'emergency.rejected',
         title:             'Emergency Access Declined',
-        message:           `${ownerProfile?.fullName ?? 'The owner'} has declined your emergency access request.`,
+        message:           `${ownerProfile?.fullName ?? 'The owner'} has declined your emergency access request. Please contact them directly if you believe this is an error.`,
         relatedEntityId:   id,
         relatedEntityType: 'emergency_request',
       });
@@ -61,10 +53,13 @@ export async function POST(
       action:       'emergency.reject',
       resourceType: 'emergency_request',
       resourceId:   id,
-      targetUserId: nomineeUser?._id.toString(),
+      targetUserId: nominee?.nomineeUserId ?? undefined,
     });
 
-    return successResponse({ message: 'Emergency access request rejected' });
+    return successResponse({
+      message:     'Emergency access request rejected',
+      nomineeName: nomineeProfile?.fullName ?? 'Nominee',
+    });
   } catch (error) {
     console.error('[POST /api/emergency/[id]/reject]', error);
     return errorResponse('Failed to reject request');

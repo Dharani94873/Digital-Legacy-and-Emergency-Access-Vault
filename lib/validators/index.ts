@@ -10,6 +10,8 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(30)
+    .regex(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores'),
   email:    z.string().email('Invalid email address'),
   password: z
     .string()
@@ -18,7 +20,6 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, 'Must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
   confirmPassword: z.string(),
-  invitationToken: z.string().optional(),
 }).refine((d) => d.password === d.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
@@ -74,13 +75,19 @@ export const createFolderSchema = z.object({
 // Nominee
 // ──────────────────────────────────────────────────────────
 export const inviteNomineeSchema = z.object({
-  email:              z.string().email('Invalid email address'),
+  nomineeUsername:    z.string().min(3, 'Username must be at least 3 characters').max(30)
+    .regex(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores'),
   waitingPeriodDays:  z.union([
     z.literal(7),  z.literal(15),  z.literal(30),
     z.literal(60), z.literal(90),  z.literal(180), z.literal(365),
   ]),
   allowedFolderIds:   z.array(z.string()).optional(),
   allowedDocumentIds: z.array(z.string()).optional(),
+});
+
+// Nominee uses this to redeem a secret code and link themselves to an owner
+export const redeemSecretCodeSchema = z.object({
+  secretCode: z.string().length(8, 'Secret code must be 8 characters').toUpperCase(),
 });
 
 export const updateNomineeSchema = z.object({
@@ -108,7 +115,6 @@ export const updateSettingsSchema = z.object({
     z.literal(7),  z.literal(15),  z.literal(30),
     z.literal(60), z.literal(90),  z.literal(180), z.literal(365),
   ]).optional(),
-  emailNotifications: z.boolean().optional(),
 });
 
 export const updateProfileSchema = z.object({

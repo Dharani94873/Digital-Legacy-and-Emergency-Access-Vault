@@ -22,13 +22,11 @@ export type DocumentCategory =
 export interface IUser {
   _id: string;
   email: string;
+  username?: string;
   passwordHash: string;
   role: UserRole;
   isActive: boolean;
   isSuspended: boolean;
-  emailVerified: boolean;
-  invitationToken?: string;
-  invitedByOwnerId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -113,12 +111,12 @@ export interface INominee {
   _id: string;
   ownerId: string;
   nomineeUserId?: string;
-  nomineeEmail: string;
+  nomineeUsername: string;
   status: NomineeStatus;
   waitingPeriodDays: WaitingPeriodDays;
   allowedFolderIds: string[];
   allowedDocumentIds: string[];
-  invitationToken: string;
+  secretCode: string;
   invitedAt: Date;
   acceptedAt?: Date;
   createdAt: Date;
@@ -137,7 +135,7 @@ export interface IEmergencyRequest {
   requestedAt: Date;
   resolvedAt?: Date;
   ownerNotifiedAt?: Date;
-  warningEmailSentAt?: Date;
+  warningNotifiedAt?: Date;
   autoApprovalScheduledAt: Date;
   grantedDocumentIds: string[];
   createdAt: Date;
@@ -199,7 +197,6 @@ export interface ISettings {
   _id: string;
   userId: string;
   defaultWaitingPeriodDays: WaitingPeriodDays;
-  emailNotifications: boolean;
   twoFactorEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;

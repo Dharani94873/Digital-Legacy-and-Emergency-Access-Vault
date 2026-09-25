@@ -16,7 +16,7 @@ const EmergencyRequestSchema = new Schema<IEmergencyRequestDocument>(
     requestedAt: { type: Date, default: Date.now },
     resolvedAt: { type: Date, default: null },
     ownerNotifiedAt: { type: Date, default: null },
-    warningEmailSentAt: { type: Date, default: null },
+    warningNotifiedAt: { type: Date, default: null },
     autoApprovalScheduledAt: { type: Date, required: true, index: true },
     grantedDocumentIds: [{ type: String, ref: 'VaultDocument' }],
   },
@@ -25,8 +25,8 @@ const EmergencyRequestSchema = new Schema<IEmergencyRequestDocument>(
 
 // Used by cron to find pending requests eligible for auto-approval
 EmergencyRequestSchema.index({ status: 1, autoApprovalScheduledAt: 1 });
-// Used by cron to find requests needing 7-day warning email
-EmergencyRequestSchema.index({ status: 1, warningEmailSentAt: 1, autoApprovalScheduledAt: 1 });
+// Used by cron to find requests needing 7-day warning notification
+EmergencyRequestSchema.index({ status: 1, warningNotifiedAt: 1, autoApprovalScheduledAt: 1 });
 
 const EmergencyRequest: Model<IEmergencyRequestDocument> =
   mongoose.models.EmergencyRequest ??

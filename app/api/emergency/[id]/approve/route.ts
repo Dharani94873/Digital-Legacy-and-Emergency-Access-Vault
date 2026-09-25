@@ -1,12 +1,10 @@
 import { NextRequest } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import { requireAuth, isNextResponse, successResponse, errorResponse, logAudit, createNotification } from '@/lib/utils';
-import { sendEmail, requestApprovedEmail, APP_URL } from '@/lib/resend';
 import { logEmergencyApprovalOnChain } from '@/lib/blockchain';
 import EmergencyRequest from '@/models/EmergencyRequest';
 import Nominee from '@/models/Nominee';
 import Profile from '@/models/Profile';
-import User from '@/models/User';
 import BlockchainTransaction from '@/models/BlockchainTransaction';
 
 // POST /api/emergency/[id]/approve
@@ -38,27 +36,19 @@ export async function POST(
     emergencyReq.grantedDocumentIds = nominee.allowedDocumentIds as string[];
     await emergencyReq.save();
 
-    // Get nominee user + profile for email
-    const [nomineeUser, nomineeProfile, ownerProfile] = await Promise.all([
-      nominee.nomineeUserId ? User.findById(nominee.nomineeUserId).lean() : null,
+    // Get nominee profile for notification
+    const [nomineeProfile, ownerProfile] = await Promise.all([
       nominee.nomineeUserId ? Profile.findOne({ userId: nominee.nomineeUserId }).lean() : null,
       Profile.findOne({ userId }).lean(),
     ]);
 
-    // Send approval email to nominee
-    if (nomineeUser) {
-      const { subject, html } = requestApprovedEmail({
-        nomineeName:  nomineeProfile?.fullName ?? nomineeUser.email,
-        ownerName:    ownerProfile?.fullName ?? 'The owner',
-        dashboardUrl: `${APP_URL}/nominee/documents`,
-      });
-      sendEmail({ to: nomineeUser.email, subject, html }).catch(console.error);
-
+    // Notify nominee in-app
+    if (nominee.nomineeUserId) {
       await createNotification({
-        userId:            nomineeUser._id.toString(),
+        userId:            nominee.nomineeUserId,
         type:              'emergency.approved',
-        title:             'Emergency Access Approved',
-        message:           `${ownerProfile?.fullName ?? 'The owner'} has approved your emergency access request.`,
+        title:             '✅ Emergency Access Approved',
+        message:           `${ownerProfile?.fullName ?? 'The owner'} has approved your emergency access request. You can now access the authorized documents.`,
         relatedEntityId:   id,
         relatedEntityType: 'emergency_request',
       });
@@ -68,7 +58,7 @@ export async function POST(
     logEmergencyApprovalOnChain(id, emergencyReq.nomineeId.toString(), userId)
       .then(async (result) => {
         await BlockchainTransaction.create({
-          documentId:      emergencyReq.nomineeId, // using nomineeId as reference
+          documentId:      emergencyReq.nomineeId,
           ownerId:         userId,
           sha256Hash:      'n/a',
           txHash:          result.txHash,
@@ -85,10 +75,14 @@ export async function POST(
       action:       'emergency.approve',
       resourceType: 'emergency_request',
       resourceId:   id,
-      targetUserId: nomineeUser?._id.toString(),
+      targetUserId: nominee.nomineeUserId ?? undefined,
     });
 
-    return successResponse({ message: 'Emergency access approved', requestId: id });
+    return successResponse({
+      message:   'Emergency access approved',
+      requestId: id,
+      nomineeName: nomineeProfile?.fullName ?? 'Nominee',
+    });
   } catch (error) {
     console.error('[POST /api/emergency/[id]/approve]', error);
     return errorResponse('Failed to approve request');

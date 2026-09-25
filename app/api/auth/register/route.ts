@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import connectToDatabase from '@/lib/mongodb';
 import User from '@/models/User';
 import Profile from '@/models/Profile';
 import Settings from '@/models/Settings';
-import Nominee from '@/models/Nominee';
 import { registerSchema } from '@/lib/validators';
-import { sendEmail, welcomeEmail, APP_URL } from '@/lib/resend';
 import { ApiResponse } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -24,49 +21,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, fullName, invitationToken } = parsed.data;
+    const { email, password, fullName, username } = parsed.data;
 
-    // Check for existing user
-    const existing = await User.findOne({ email }).lean();
-    if (existing) {
+    // Check for existing email
+    const existingByEmail = await User.findOne({ email }).lean();
+    if (existingByEmail) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'An account with this email already exists' },
         { status: 409 },
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    // If invitation token is provided, validate it and determine role
-    let role: 'owner' | 'nominee' = 'owner';
-    let nomineeDoc = null;
-
-    if (invitationToken) {
-      nomineeDoc = await Nominee.findOne({ invitationToken, status: 'pending' });
-      if (!nomineeDoc) {
-        return NextResponse.json<ApiResponse>(
-          { success: false, error: 'Invalid or expired invitation token' },
-          { status: 400 },
-        );
-      }
-      // Verify the email matches the invitation
-      if (nomineeDoc.nomineeEmail !== email.toLowerCase()) {
-        return NextResponse.json<ApiResponse>(
-          { success: false, error: 'Email does not match the invitation' },
-          { status: 400 },
-        );
-      }
-      role = 'nominee';
+    // Check for existing username
+    const existingByUsername = await User.findOne({ username: username.toLowerCase() }).lean();
+    if (existingByUsername) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'This username is already taken' },
+        { status: 409 },
+      );
     }
 
-    // Create user
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    // All users register as 'owner' by default.
+    // They become a nominee by redeeming a secret code from the Nominee dashboard.
     const user = await User.create({
       email,
+      username: username.toLowerCase(),
       passwordHash,
-      role,
+      role: 'owner',
       isActive: true,
       isSuspended: false,
-      emailVerified: false,
     });
 
     // Create profile
@@ -74,22 +59,6 @@ export async function POST(request: NextRequest) {
 
     // Create default settings
     await Settings.create({ userId: user._id.toString() });
-
-    // Link nominee record if applicable
-    if (nomineeDoc) {
-      nomineeDoc.nomineeUserId = user._id.toString();
-      nomineeDoc.status = 'active';
-      nomineeDoc.acceptedAt = new Date();
-      nomineeDoc.invitationToken = crypto.randomBytes(32).toString('hex'); // invalidate old token
-      await nomineeDoc.save();
-    }
-
-    // Send welcome email (non-blocking)
-    const { subject, html } = welcomeEmail({
-      userName: fullName,
-      dashboardUrl: `${APP_URL}/${role}/dashboard`,
-    });
-    sendEmail({ to: email, subject, html }).catch(console.error);
 
     return NextResponse.json<ApiResponse>(
       { success: true, message: 'Account created successfully' },
