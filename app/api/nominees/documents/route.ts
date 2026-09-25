@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
       }).select('-encryptionIV -encryptionAuthTag').lean();
 
       // Filter documents based on nominee permissions (explicit allowed documents OR document inside allowed folders)
-      const allowedDocIds = new Set(nominee.allowedDocumentIds.map((id) => id.toString()));
-      const allowedFolderIds = new Set(nominee.allowedFolderIds.map((id) => id.toString()));
+      const allowedDocIds = new Set((nominee.allowedDocumentIds || []).map((id) => String(id)));
+      const allowedFolderIds = new Set((nominee.allowedFolderIds || []).map((id) => String(id)));
 
       const filteredDocs = ownerDocs.filter((doc) => {
         const isDocAllowed = allowedDocIds.has(doc._id.toString());
-        const isFolderAllowed = doc.folderId && allowedFolderIds.has(doc.folderId.toString());
+        const isFolderAllowed = Boolean(doc.folderId && allowedFolderIds.has(doc.folderId.toString()));
         return isDocAllowed || isFolderAllowed;
       });
 

@@ -83,8 +83,12 @@ export async function POST(request: NextRequest) {
 
     return successResponse(
       {
+        _id:                     emergencyRequest._id.toString(),
         requestId:               emergencyRequest._id.toString(),
-        status:                  'pending',
+        ownerId,
+        reason,
+        status:                  emergencyRequest.status,
+        requestedAt:             emergencyRequest.requestedAt ? emergencyRequest.requestedAt.toISOString() : new Date().toISOString(),
         autoApprovalScheduledAt: autoApprovalScheduledAt.toISOString(),
       },
       201,
@@ -122,7 +126,23 @@ export async function GET(request: NextRequest) {
       .sort({ requestedAt: -1 })
       .lean();
 
-    return successResponse(requests);
+    const enriched = await Promise.all(
+      requests.map(async (r) => {
+        const ownerUser = await User.findById(r.ownerId).select('email').lean();
+        const ownerProfile = await Profile.findOne({ userId: r.ownerId }).select('fullName').lean();
+        return {
+          ...r,
+          _id: r._id.toString(),
+          ownerName: ownerProfile?.fullName ?? ownerUser?.email ?? 'Vault Owner',
+          ownerEmail: ownerUser?.email ?? '',
+          requestedAt: r.requestedAt ? new Date(r.requestedAt).toISOString() : new Date().toISOString(),
+          resolvedAt: r.resolvedAt ? new Date(r.resolvedAt).toISOString() : undefined,
+          autoApprovalScheduledAt: r.autoApprovalScheduledAt ? new Date(r.autoApprovalScheduledAt).toISOString() : new Date().toISOString(),
+        };
+      })
+    );
+
+    return successResponse(enriched);
   } catch (error) {
     console.error('[GET /api/emergency/request]', error);
     return errorResponse('Failed to fetch emergency requests');

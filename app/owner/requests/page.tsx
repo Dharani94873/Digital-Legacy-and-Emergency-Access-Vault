@@ -12,16 +12,45 @@ interface Request {
   ownerId: string;
   status: 'pending' | 'approved' | 'rejected' | 'auto-approved';
   reason: string;
-  requestedAt: string;
+  requestedAt?: string;
   resolvedAt?: string;
-  autoApprovalScheduledAt: string;
+  autoApprovalScheduledAt?: string;
 }
 
-const STATUS_CONFIG = {
-  pending:       { label: 'Pending',       cls: 'bg-amber-50 text-amber-700 border-amber-200',   icon: Clock        },
-  approved:      { label: 'Approved',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  rejected:      { label: 'Rejected',      cls: 'bg-red-50 text-red-600 border-red-200',         icon: XCircle      },
-  'auto-approved': { label: 'Auto-Approved', cls: 'bg-blue-50 text-blue-700 border-blue-200',    icon: CheckCircle  },
+function safeFormatDistance(dateStr?: string | Date | null): string {
+  if (!dateStr) return 'recently';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'recently';
+  try {
+    return formatDistanceToNow(d, { addSuffix: true });
+  } catch {
+    return 'recently';
+  }
+}
+
+function safeFormatDate(dateStr?: string | Date | null, fmt = 'MMM d, yyyy'): string {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  try {
+    return format(d, fmt);
+  } catch {
+    return '—';
+  }
+}
+
+function safeIsPast(dateStr?: string | Date | null): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
+  return isPast(d);
+}
+
+const STATUS_CONFIG: Record<string, { label: string; cls: string; icon: React.ElementType }> = {
+  pending:         { label: 'Pending',       cls: 'bg-amber-50 text-amber-700 border-amber-200',   icon: Clock },
+  approved:        { label: 'Approved',      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle },
+  rejected:        { label: 'Rejected',      cls: 'bg-red-50 text-red-600 border-red-200',         icon: XCircle },
+  'auto-approved': { label: 'Auto-Approved', cls: 'bg-blue-50 text-blue-700 border-blue-200',     icon: CheckCircle },
 };
 
 export default function RequestsPage() {
@@ -87,12 +116,16 @@ export default function RequestsPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map((req, i) => {
-            const cfg      = STATUS_CONFIG[req.status];
-            const Icon     = cfg.icon;
-            const autoDate = new Date(req.autoApprovalScheduledAt);
-            const isPending = req.status === 'pending';
+            const rawStatus = (req.status || 'pending').toLowerCase();
+            const cfg = STATUS_CONFIG[rawStatus] || {
+              label: req.status || 'Pending',
+              cls: 'bg-slate-50 text-slate-700 border-slate-200',
+              icon: Clock,
+            };
+            const Icon = cfg.icon;
+            const isPending = rawStatus === 'pending';
             return (
-              <motion.div key={req._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              <motion.div key={req._id || `req-${i}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                 className="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-sm transition-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -108,13 +141,13 @@ export default function RequestsPage() {
                       </div>
                       <p className="text-sm text-slate-600 mt-2 leading-relaxed">{req.reason}</p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
-                        <span>Requested {formatDistanceToNow(new Date(req.requestedAt), { addSuffix: true })}</span>
-                        {isPending && (
-                          <span className={`font-medium ${isPast(autoDate) ? 'text-red-500' : 'text-amber-600'}`}>
-                            Auto-approves {format(autoDate, 'MMM d, yyyy')}
+                        <span>Requested {safeFormatDistance(req.requestedAt)}</span>
+                        {isPending && req.autoApprovalScheduledAt && (
+                          <span className={`font-medium ${safeIsPast(req.autoApprovalScheduledAt) ? 'text-red-500' : 'text-amber-600'}`}>
+                            Auto-approves {safeFormatDate(req.autoApprovalScheduledAt)}
                           </span>
                         )}
-                        {req.resolvedAt && <span>Resolved {formatDistanceToNow(new Date(req.resolvedAt), { addSuffix: true })}</span>}
+                        {req.resolvedAt && <span>Resolved {safeFormatDistance(req.resolvedAt)}</span>}
                       </div>
                     </div>
                   </div>

@@ -27,7 +27,18 @@ interface Notification {
   type: string;
 }
 
-const STATUS_CONFIG = {
+function safeFormatDistance(dateStr?: string | Date | null): string {
+  if (!dateStr) return 'recently';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'recently';
+  try {
+    return formatDistanceToNow(d, { addSuffix: true });
+  } catch {
+    return 'recently';
+  }
+}
+
+const STATUS_CONFIG: Record<string, { label: string; cls: string; dot: string }> = {
   pending:         { label: 'Pending',       cls: 'bg-amber-100 text-amber-700',   dot: 'bg-amber-400' },
   approved:        { label: 'Approved',      cls: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
   rejected:        { label: 'Rejected',      cls: 'bg-red-100 text-red-700',       dot: 'bg-red-400' },
@@ -177,7 +188,7 @@ export default function NomineeDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-800 truncate">{req.reason}</p>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        {formatDistanceToNow(new Date(req.requestedAt), { addSuffix: true })}
+                        {safeFormatDistance(req.requestedAt)}
                       </p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${cfg.cls}`}>
@@ -236,7 +247,7 @@ export default function NomineeDashboardPage() {
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5 truncate">{notif.message}</p>
                     <p className="text-xs text-slate-300 mt-0.5">
-                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                      {safeFormatDistance(notif.createdAt)}
                     </p>
                   </div>
                   {!notif.isRead && (
