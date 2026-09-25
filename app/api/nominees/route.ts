@@ -30,12 +30,44 @@ export async function GET(request: NextRequest) {
 
     const nominees = await Nominee.find(filter).sort({ createdAt: -1 }).lean();
 
-    // Enrich with nominee profile names
+    // Enrich with nominee profile names and safely handle legacy database records
     const enriched = await Promise.all(
-      nominees.map(async (n) => {
-        if (!n.nomineeUserId) return { ...n, nomineeName: null };
-        const profile = await Profile.findOne({ userId: n.nomineeUserId }).lean();
-        return { ...n, nomineeName: profile?.fullName ?? null };
+      nominees.map(async (n: any) => {
+        let nomineeName = null;
+        if (n.nomineeUserId) {
+          const profile = await Profile.findOne({ userId: n.nomineeUserId }).lean();
+          nomineeName = profile?.fullName ?? null;
+        }
+
+        let updated = false;
+        let secretCode = n.secretCode;
+        let nomineeUsername = n.nomineeUsername;
+
+        // Auto-migrate legacy documents in database
+        if (!secretCode && n.status === 'pending') {
+          secretCode = n.invitationToken ? n.invitationToken.slice(0, 8).toUpperCase() : generateSecretCode();
+          updated = true;
+        }
+        if (!nomineeUsername) {
+          nomineeUsername = n.nomineeEmail
+            ? n.nomineeEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_')
+            : 'nominee';
+          updated = true;
+        }
+
+        if (updated) {
+          await Nominee.updateOne(
+            { _id: n._id },
+            { $set: { secretCode: secretCode || generateSecretCode(), nomineeUsername } },
+          ).catch((e) => console.error('Nominee migration update error:', e));
+        }
+
+        return {
+          ...n,
+          nomineeUsername: nomineeUsername || 'nominee',
+          secretCode: secretCode || '',
+          nomineeName,
+        };
       }),
     );
 

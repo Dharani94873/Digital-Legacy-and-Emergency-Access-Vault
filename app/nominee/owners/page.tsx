@@ -254,7 +254,7 @@ export default function NomineeOwnersPage() {
               <div className="flex items-center justify-between pt-3 border-t border-slate-50 text-xs text-slate-400">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
-                  Linked {owner.acceptedAt ? new Date(owner.acceptedAt).toLocaleDateString() : '—'}
+                  Linked {owner.acceptedAt && !isNaN(new Date(owner.acceptedAt).getTime()) ? new Date(owner.acceptedAt).toLocaleDateString() : '—'}
                 </span>
                 <span className="bg-emerald-50 text-emerald-700 font-medium px-2.5 py-0.5 rounded-full border border-emerald-100">
                   Active

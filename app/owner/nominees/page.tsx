@@ -10,29 +10,42 @@ const WAITING_PERIODS = [7, 15, 30, 60, 90, 180, 365] as const;
 
 interface Nominee {
   _id: string;
-  nomineeUsername: string;
-  nomineeName: string | null;
+  nomineeUsername?: string;
+  nomineeName?: string | null;
   status: 'pending' | 'active' | 'revoked';
   waitingPeriodDays: number;
-  allowedFolderIds: string[];
-  allowedDocumentIds: string[];
-  secretCode: string;
-  invitedAt: string;
+  allowedFolderIds?: string[];
+  allowedDocumentIds?: string[];
+  secretCode?: string;
+  invitedAt?: string;
   acceptedAt?: string;
 }
 
-const StatusBadge = ({ status }: { status: Nominee['status'] }) => {
-  const map = {
-    pending: { label: 'Awaiting Nominee',  cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-    active:  { label: 'Active',            cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    revoked: { label: 'Revoked',           cls: 'bg-red-50 text-red-600 border-red-200' },
+function safeFormatDistance(dateStr?: string | Date | null): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  try {
+    return formatDistanceToNow(d, { addSuffix: true });
+  } catch {
+    return null;
+  }
+}
+
+const StatusBadge = ({ status }: { status?: Nominee['status'] }) => {
+  const map: Record<string, { label: string; cls: string }> = {
+    pending: { label: 'Awaiting Nominee', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+    active:  { label: 'Active',           cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    revoked: { label: 'Revoked',          cls: 'bg-red-50 text-red-600 border-red-200' },
   };
-  const { label, cls } = map[status];
-  return <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cls}`}>{label}</span>;
+  const badge = (status && map[status]) || { label: status ?? 'Pending', cls: 'bg-slate-50 text-slate-600 border-slate-200' };
+  return <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>;
 };
 
-function SecretCodeDisplay({ code, nomineeId }: { code: string; nomineeId: string }) {
+function SecretCodeDisplay({ code, nomineeId }: { code?: string; nomineeId: string }) {
   const [copied, setCopied] = useState(false);
+
+  if (!code) return null;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -41,8 +54,8 @@ function SecretCodeDisplay({ code, nomineeId }: { code: string; nomineeId: strin
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Format as XXXX-XXXX
-  const formatted = `${code.slice(0, 4)}-${code.slice(4)}`;
+  // Format as XXXX-XXXX if 8 chars, otherwise display as-is
+  const formatted = code.length >= 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code;
 
   return (
     <div className="flex items-center gap-2 mt-2">
@@ -275,24 +288,28 @@ export default function NomineesPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-slate-900 text-sm">
-                        {n.nomineeName ?? `@${n.nomineeUsername}`}
+                        {n.nomineeName ?? (n.nomineeUsername ? `@${n.nomineeUsername}` : 'Nominee')}
                       </p>
                       <StatusBadge status={n.status} />
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">@{n.nomineeUsername}</p>
+                    {n.nomineeUsername && (
+                      <p className="text-xs text-slate-400 mt-0.5">@{n.nomineeUsername}</p>
+                    )}
                     <div className="flex items-center gap-4 mt-1.5 text-xs text-slate-400">
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {n.waitingPeriodDays} days waiting</span>
-                      <span>Added {formatDistanceToNow(new Date(n.invitedAt), { addSuffix: true })}</span>
-                      {n.acceptedAt && <span className="text-emerald-600">Accepted {formatDistanceToNow(new Date(n.acceptedAt), { addSuffix: true })}</span>}
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {n.waitingPeriodDays ?? 30} days waiting</span>
+                      {safeFormatDistance(n.invitedAt) && <span>Added {safeFormatDistance(n.invitedAt)}</span>}
+                      {n.acceptedAt && safeFormatDistance(n.acceptedAt) && (
+                        <span className="text-emerald-600">Accepted {safeFormatDistance(n.acceptedAt)}</span>
+                      )}
                     </div>
                     {/* Show secret code for pending nominees */}
-                    {n.status === 'pending' && (
+                    {n.status === 'pending' && n.secretCode && (
                       <SecretCodeDisplay code={n.secretCode} nomineeId={n._id} />
                     )}
                   </div>
                 </div>
                 {n.status !== 'revoked' && (
-                  <button onClick={() => handleRevoke(n._id, n.nomineeUsername)}
+                  <button onClick={() => handleRevoke(n._id, n.nomineeUsername ?? 'nominee')}
                     className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
