@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Enrich with nominee profile names and safely handle legacy database records
     const enriched = await Promise.all(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       nominees.map(async (n: any) => {
         let nomineeName = null;
         if (n.nomineeUserId) {
