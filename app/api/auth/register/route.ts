@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, fullName, username } = parsed.data;
+    const { email, password, fullName, username, role } = parsed.data;
 
     // Check for existing email
     const existingByEmail = await User.findOne({ email }).lean();
@@ -43,13 +43,11 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // All users register as 'owner' by default.
-    // They become a nominee by redeeming a secret code from the Nominee dashboard.
     const user = await User.create({
       email,
       username: username.toLowerCase(),
       passwordHash,
-      role: 'owner',
+      role: role || 'owner',
       isActive: true,
       isSuspended: false,
     });

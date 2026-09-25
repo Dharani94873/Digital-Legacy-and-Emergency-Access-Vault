@@ -10,7 +10,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, Mail, Shield, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Shield, Loader2, KeyRound, AtSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { loginSchema } from '@/lib/validators';
 
@@ -20,9 +20,9 @@ function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl  = searchParams.get('callbackUrl') ?? '';
-  const token        = searchParams.get('token');
-  const [showPwd, setShowPwd] = useState(false);
-  const [loading,  setLoading]  = useState(false);
+  const [role,       setRole]       = useState<'owner' | 'nominee'>('owner');
+  const [showPwd,    setShowPwd]    = useState(false);
+  const [loading,    setLoading]    = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -32,40 +32,24 @@ function LoginForm() {
     setLoading(true);
     try {
       const result = await signIn('credentials', {
-        email:    data.email,
-        password: data.password,
-        redirect: false,
+        email:        data.email,
+        password:     data.password,
+        expectedRole: role,
+        redirect:     false,
       });
 
       if (result?.error) {
-        toast.error('Invalid email or password. Please try again.');
+        if (result.error.includes('ROLE_MISMATCH:owner')) {
+          toast.error("This account is registered as a Vault Owner. Please switch to the 'Vault Owner' tab above.");
+        } else if (result.error.includes('ROLE_MISMATCH:nominee')) {
+          toast.error("This account is registered as a Nominee. Please switch to the 'Nominee' tab above.");
+        } else {
+          toast.error('Invalid email/username or password. Please try again.');
+        }
         return;
       }
 
-      // Redirect based on role — session will be available after sign-in
-      const res = await fetch('/api/auth/session');
-      const session = await res.json();
-      const role = session?.user?.role ?? 'owner';
-
-      // Automatically accept the nominee invitation if token is present
-      if (token && session?.user?.id) {
-        try {
-          const acceptRes = await fetch(`/api/nominees/accept?token=${token}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: session.user.id }),
-          });
-          const acceptJson = await acceptRes.json();
-          if (acceptJson.success) {
-            toast.success('Nominee invitation accepted!');
-          } else {
-            toast.error(acceptJson.error ?? 'Failed to accept nominee invitation');
-          }
-        } catch (e) {
-          console.error('[Login accept invitation failed]', e);
-        }
-      }
-
+      toast.success(`Welcome back! Logging in as ${role === 'owner' ? 'Vault Owner' : 'Nominee'}…`);
       router.push(callbackUrl || `/${role}/dashboard`);
       router.refresh();
     } catch {
@@ -100,27 +84,64 @@ function LoginForm() {
             <Shield className="w-8 h-8 text-white" />
           </motion.div>
           <h1 className="text-2xl font-bold text-slate-900">Digital Legacy Vault</h1>
-          <p className="text-slate-500 mt-1 text-sm">Secure document management</p>
+          <p className="text-slate-500 mt-1 text-sm">Secure document management &amp; emergency access</p>
         </div>
 
         {/* Card */}
         <div className="glass-card rounded-2xl p-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">Welcome back</h2>
+          {/* Role Switcher Tabs */}
+          <div className="bg-slate-100/80 p-1 rounded-xl flex gap-1 mb-6 border border-slate-200/60">
+            <button
+              type="button"
+              onClick={() => setRole('owner')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                role === 'owner'
+                  ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Shield className={`w-4 h-4 ${role === 'owner' ? 'text-indigo-600' : 'text-slate-400'}`} />
+              Vault Owner
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('nominee')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                role === 'nominee'
+                  ? 'bg-white text-sky-700 shadow-sm border border-slate-200/50'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <KeyRound className={`w-4 h-4 ${role === 'nominee' ? 'text-sky-600' : 'text-slate-400'}`} />
+              Nominee
+            </button>
+          </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-            {/* Email */}
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-slate-900">
+              {role === 'owner' ? 'Owner Portal Login' : 'Nominee Portal Login'}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              {role === 'owner'
+                ? 'Sign in to access and manage your vaulted documents'
+                : 'Sign in to access your designated emergency vaults'}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            {/* Email or Username */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Email address
+                Email or Username
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   id="email"
-                  type="email"
-                  autoComplete="email"
+                  type="text"
+                  autoComplete="username email"
                   {...register('email')}
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or username"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm placeholder-slate-400
                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
@@ -171,9 +192,11 @@ function LoginForm() {
               id="login-submit"
               type="submit"
               disabled={loading}
-              className="w-full vault-gradient text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md
+              className={`w-full text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md
                          hover:opacity-90 active:scale-[0.98] transition-all duration-150 disabled:opacity-70 disabled:cursor-not-allowed
-                         flex items-center justify-center gap-2 mt-2"
+                         flex items-center justify-center gap-2 mt-2 ${
+                           role === 'owner' ? 'vault-gradient' : 'bg-gradient-to-r from-sky-500 to-blue-600'
+                         }`}
             >
               {loading ? (
                 <>
@@ -181,15 +204,15 @@ function LoginForm() {
                   Signing in…
                 </>
               ) : (
-                'Sign in'
+                `Sign in as ${role === 'owner' ? 'Vault Owner' : 'Nominee'}`
               )}
             </button>
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Create one
+            <Link href={`/auth/register?role=${role}`} className="text-indigo-600 hover:text-indigo-700 font-medium">
+              Create an account
             </Link>
           </p>
         </div>

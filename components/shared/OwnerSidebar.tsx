@@ -43,15 +43,6 @@ export default function OwnerSidebar({ user }: Props) {
         </div>
       </div>
 
-      {/* Mode Switcher */}
-      <div className="px-4 py-2 border-b border-slate-50 bg-slate-50/50">
-        <Link href="/nominee/dashboard">
-          <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer">
-            Switch to Nominee View
-          </div>
-        </Link>
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon: Icon }) => {

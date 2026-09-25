@@ -18,16 +18,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email:    { label: 'Email',    type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email:        { label: 'Email or Username', type: 'text' },
+        password:     { label: 'Password',          type: 'password' },
+        expectedRole: { label: 'Role',              type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         await connectToDatabase();
 
+        const identifier = (credentials.email as string).trim().toLowerCase();
+
         const user = await User.findOne({
-          email:       credentials.email,
+          $or: [
+            { email: identifier },
+            { username: identifier },
+          ],
           isActive:    true,
           isSuspended: false,
         }).lean();
@@ -40,13 +46,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         );
         if (!isValid) return null;
 
+        // Verify role matches selected portal (admin can log in anywhere)
+        const expectedRole = credentials.expectedRole as string | undefined;
+        if (expectedRole && user.role !== 'admin' && user.role !== expectedRole) {
+          throw new Error(`ROLE_MISMATCH:${user.role}`);
+        }
+
         const profile = await Profile.findOne({ userId: user._id.toString() }).lean();
 
         return {
           id:    user._id.toString(),
           email: user.email,
           role:  user.role as UserRole,
-          name:  profile?.fullName ?? user.email,
+          name:  profile?.fullName ?? user.username ?? user.email,
           image: profile?.avatarUrl ?? null,
         };
       },

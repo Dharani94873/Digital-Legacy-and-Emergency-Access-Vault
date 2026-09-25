@@ -6,10 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, Mail, User, Shield, Loader2, AtSign } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Shield, Loader2, AtSign, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { registerSchema } from '@/lib/validators';
 
@@ -17,12 +17,18 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 function RegisterForm() {
   const router        = useRouter();
+  const searchParams  = useSearchParams();
+  const initialRole   = searchParams.get('role') === 'nominee' ? 'nominee' : 'owner';
+  const [selectedRole, setSelectedRole] = useState<'owner' | 'nominee'>(initialRole);
   const [showPwd,     setShowPwd]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: initialRole,
+    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -31,7 +37,7 @@ function RegisterForm() {
       const res  = await fetch('/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(data),
+        body:    JSON.stringify({ ...data, role: selectedRole }),
       });
       const json = await res.json();
 
@@ -40,12 +46,13 @@ function RegisterForm() {
         return;
       }
 
-      toast.success('Account created! Signing you in…');
+      toast.success(`Account created as ${selectedRole === 'owner' ? 'Vault Owner' : 'Nominee'}! Signing you in…`);
 
       const loginRes = await signIn('credentials', {
-        email:    data.email,
-        password: data.password,
-        redirect: false,
+        email:        data.email,
+        password:     data.password,
+        expectedRole: selectedRole,
+        redirect:     false,
       });
 
       if (loginRes?.error) {
@@ -53,10 +60,7 @@ function RegisterForm() {
         return;
       }
 
-      const sessionRes = await fetch('/api/auth/session');
-      const session    = await sessionRes.json();
-      const role       = session?.user?.role ?? 'owner';
-      router.push(`/${role}/dashboard`);
+      router.push(`/${selectedRole}/dashboard`);
       router.refresh();
     } catch {
       toast.error('Something went wrong. Please try again.');
@@ -102,6 +106,45 @@ function RegisterForm() {
           <h2 className="text-xl font-semibold text-slate-900 mb-6">Create your account</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+
+            {/* Account Role Selector */}
+            <div className="mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                I am registering as:
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setSelectedRole('owner'); setValue('role', 'owner'); }}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    selectedRole === 'owner'
+                      ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/20'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Shield className={`w-4 h-4 ${selectedRole === 'owner' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                    <span className="text-sm font-bold text-slate-900">Vault Owner</span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-tight">Store, encrypt &amp; control my documents</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedRole('nominee'); setValue('role', 'nominee'); }}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    selectedRole === 'nominee'
+                      ? 'border-sky-600 bg-sky-50/70 ring-2 ring-sky-500/20'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <KeyRound className={`w-4 h-4 ${selectedRole === 'nominee' ? 'text-sky-600' : 'text-slate-400'}`} />
+                    <span className="text-sm font-bold text-slate-900">Nominee</span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-tight">Access vaults with an owner&apos;s secret code</p>
+                </button>
+              </div>
+            </div>
 
             {/* Full Name */}
             <InputWrapper error={errors.fullName?.message}>
@@ -213,14 +256,16 @@ function RegisterForm() {
               id="register-submit"
               type="submit"
               disabled={loading}
-              className="w-full vault-gradient text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md
+              className={`w-full text-white font-semibold py-2.5 rounded-xl shadow-sm hover:shadow-md
                          hover:opacity-90 active:scale-[0.98] transition-all duration-150 disabled:opacity-70 disabled:cursor-not-allowed
-                         flex items-center justify-center gap-2 mt-2"
+                         flex items-center justify-center gap-2 mt-2 ${
+                           selectedRole === 'owner' ? 'vault-gradient' : 'bg-gradient-to-r from-sky-500 to-blue-600'
+                         }`}
             >
               {loading ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>
               ) : (
-                'Create Account'
+                `Create ${selectedRole === 'owner' ? 'Vault Owner' : 'Nominee'} Account`
               )}
             </button>
           </form>

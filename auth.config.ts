@@ -39,15 +39,22 @@ export const authConfig: NextAuthConfig = {
       // Protect /owner/* routes
       const role = (auth?.user as { role?: string })?.role;
 
+      // Protect /owner/* routes — only owners and admins
       if (nextUrl.pathname.startsWith('/owner')) {
         if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
-        if (role !== 'owner' && role !== 'nominee') return Response.redirect(new URL('/unauthorized', nextUrl));
+        if (role !== 'owner' && role !== 'admin') {
+          if (role === 'nominee') return Response.redirect(new URL('/nominee/dashboard', nextUrl));
+          return Response.redirect(new URL('/unauthorized', nextUrl));
+        }
       }
 
-      // Protect /nominee/* routes
+      // Protect /nominee/* routes — only nominees and admins
       if (nextUrl.pathname.startsWith('/nominee')) {
         if (!isLoggedIn) return Response.redirect(new URL('/auth/login', nextUrl));
-        if (role !== 'nominee' && role !== 'owner') return Response.redirect(new URL('/unauthorized', nextUrl));
+        if (role !== 'nominee' && role !== 'admin') {
+          if (role === 'owner') return Response.redirect(new URL('/owner/dashboard', nextUrl));
+          return Response.redirect(new URL('/unauthorized', nextUrl));
+        }
       }
 
       // Protect /admin/* routes

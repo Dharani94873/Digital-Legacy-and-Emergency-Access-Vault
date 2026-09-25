@@ -36,14 +36,6 @@ export default function NomineeSidebar({ user }: Props) {
         </div>
       </div>
 
-      {/* Mode Switcher */}
-      <div className="px-4 py-2 border-b border-slate-50 bg-slate-50/50">
-        <Link href="/owner/dashboard">
-          <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-sky-600 hover:bg-white hover:border-sky-200 transition-all cursor-pointer">
-            Switch to Owner View
-          </div>
-        </Link>
-      </div>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/');
